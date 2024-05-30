@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lokalna Meteo Stanica</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #000000;
+        }
+        .sensor-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .sensor-item {
+            margin: 10px;
+            text-align: center;
+        }
+        img {
+            max-width: 100%;
+            max-height: 150px;
+            height: auto;
+        }
+        .meteoStanica{
+            font-size: 22px;
+            margin-bottom: 100px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
+            font-weight: bold;
+            background-color: #333333;
+            padding-left: 50px;
+            padding-right: 50px;
+            border-radius: 10px;
+        }
+        .meteoStanica h1{
+            background-color: #555555;
+            color: white;
+            padding: 4px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .sensor-item input {
+            color: white;
+            background-color: #555555;
+            height: 30px;
+            width: 80px;
+        }
+        .button-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }   
+        .action-image {
+            cursor: pointer;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="meteoStanica"> 
+    <h1>Lokalna Meteo Stanica</h1>
+    <div class="sensor-container">
+        <div class="sensor-item">
+            <img src="Icons/thermometer.png" alt="Temperature">
+            <p>Temperatura: <span id="temperatureValue">-</span></p>
+        </div>
+        <div class="sensor-item">
+            <img src="Icons/humidity.png" alt="Humidity">
+            <p>Vlažnost: <span id="humidityValue">-</span></p>
+        </div>
+        <div class="sensor-item">
+            <img class="action-image" src="Icons/on-button.png" alt="Turn On" onclick="toggleApp(true)">
+            <p>Status: <span id="switchValue">-</span></p>
+        </div>
+    </div>
+    <h1>Lokalna Meteo Stanica</h1>
+</div>
+<script>
+    function updateSensorData() {
+        fetch('/sensor-data')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('temperatureValue').innerText = data.temperature;
+                document.getElementById('humidityValue').innerText = data.humidity;
+            })
+            .catch(error => console.error('Error fetching sensor data:', error));
+    }
+    
+    function updateAppState(appRunning) {
+        const switchValueElement = document.getElementById('switchValue');
+        switchValueElement.innerText = appRunning ? 'Upaljen' : 'Ugašen';
+        const actionImage = document.querySelector('.action-image');
+        actionImage.src = appRunning ? 'Icons/off-button.png' : 'Icons/on-button.png';
+        actionImage.alt = appRunning ? 'Turn Off' : 'Turn On';
+        actionImage.onclick = () => toggleApp(!appRunning);
+    }
+
+    function toggleApp(turnOn) {
+        fetch(turnOn ? '/turn-on-app' : '/turn-off-app')
+            .then(response => {
+                if (response.ok) {
+                    updateAppState(turnOn);
+                } else {
+                    console.error(`Failed to ${turnOn ? 'turn on' : 'turn off'} the app.`);
+                }
+            })
+            .catch(error => console.error(`Error trying to ${turnOn ? 'turn on' : 'turn off'} the app:`, error));
+    }
+
+    updateSensorData();
+    setInterval(updateSensorData, 2000);
+</script>
+</body>
+</html>
